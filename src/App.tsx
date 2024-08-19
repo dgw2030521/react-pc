@@ -5,7 +5,6 @@ import { ConfigProvider, theme } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import VConsole from 'vconsole';
 
 import routes from './router';
 import { LoginProvider } from './store/user';
@@ -28,9 +27,6 @@ const initUserInfo: Partial<any> = {
 };
 
 const App = () => {
-  const vConsole = new VConsole();
-  console.log(vConsole);
-
   // 定制主题 https://ant.design/docs/react/customize-theme-cn
   return (
     <ConfigProvider

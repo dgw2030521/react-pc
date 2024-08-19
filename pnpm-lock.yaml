@@ -169,9 +169,6 @@ devDependencies:
   typescript:
     specifier: ^5.2.2
     version: 5.5.4
-  vconsole:
-    specifier: ^3.15.1
-    version: 3.15.1
   vite:
     specifier: ^5.3.4
     version: 5.4.1(@types/node@18.19.45)(sass@1.77.8)(terser@5.31.6)
@@ -1471,6 +1468,7 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.1
+    dev: false
 
   /@babel/template@7.25.0:
     resolution: {integrity: sha512-aOOgh1/5XzKvg1jvVz7AVrx2piJ2XBi227DHmbY6y+bM9H2FlN+IfecYu4Xl0cNiiVejlsCri89LUsbj8vJD9Q==}
@@ -3567,11 +3565,6 @@ packages:
   /convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
-  /copy-text-to-clipboard@3.2.0:
-    resolution: {integrity: sha512-RnJFp1XR/LOBDckxTib5Qjr/PMfkatD0MUCQgdpqS8MdKiNUzBjAQBEN6oUy+jW7LI93BBG3DtMB2KOOKpGs2Q==}
-    engines: {node: '>=12'}
-    dev: true
-
   /copy-to-clipboard@3.3.3:
     resolution: {integrity: sha512-2KV8NhB5JqC3ky0r9PMCAZKbUHSwtEo4CwCs0KXgruG43gX5PMqDEBbVU4OUzw2MuAWUfsuFmWvEKG5QRfSnJA==}
     dependencies:
@@ -3587,6 +3580,7 @@ packages:
   /core-js@3.38.0:
     resolution: {integrity: sha512-XPpwqEodRljce9KswjZShh95qJ1URisBeKCjUdq27YdenkslVe7OO0ZJhlYXAChW7OhXaRLl8AAba7IBfoIHug==}
     requiresBuild: true
+    dev: false
 
   /cosmiconfig-typescript-loader@5.0.0(@types/node@18.19.45)(cosmiconfig@9.0.0)(typescript@5.5.4):
     resolution: {integrity: sha512-+8cK7jRAReYkMwMiG+bxhcNKiHJDM6bR9FD/nGBXOWdMLuYawjF5cGrtLilJ+LGd3ZjCXnJjR5DkfWPoIVlqJA==}
@@ -5511,10 +5505,6 @@ packages:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
     dev: true
 
-  /mutation-observer@1.0.3:
-    resolution: {integrity: sha512-M/O/4rF2h776hV7qGMZUH3utZLO/jK7p8rnNgGkjKUw8zCGjRQPxB8z6+5l8+VjRUQ3dNYu4vjqXYLr+U8ZVNA==}
-    dev: true
-
   /nanoid@3.3.7:
     resolution: {integrity: sha512-eSRppjcPIatRIMC1U6UngP8XFcz8MQWGQdt1MTBQ7NaAmvXDfvNxbvWV3x2y6CdEUciCSsDHDQZbhYaB8QEo2g==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -7195,6 +7185,7 @@ packages:
 
   /regenerator-runtime@0.14.1:
     resolution: {integrity: sha512-dYnhHh0nJoMfnkZs6GmmhFknAGRrLznOu5nc9ML+EJxGvrx6H7teuevqVqCuPcPK//3eDrrjQhehXVx9cnkGdw==}
+    dev: false
 
   /regenerator-transform@0.15.2:
     resolution: {integrity: sha512-hfMp2BoF0qOk3uc5V20ALGDS2ddjQaLrdl7xrGXvAIow7qeWRM2VA2HuCHkUKk9slq3VwEwLNK3DFBqDfPGYtg==}
@@ -7903,15 +7894,6 @@ packages:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
     hasBin: true
     dev: false
-
-  /vconsole@3.15.1:
-    resolution: {integrity: sha512-KH8XLdrq9T5YHJO/ixrjivHfmF2PC2CdVoK6RWZB4yftMykYIaXY1mxZYAic70vADM54kpMQF+dYmvl5NRNy1g==}
-    dependencies:
-      '@babel/runtime': 7.25.0
-      copy-text-to-clipboard: 3.2.0
-      core-js: 3.38.0
-      mutation-observer: 1.0.3
-    dev: true
 
   /vite-plugin-compression@0.5.1(vite@5.4.1):
     resolution: {integrity: sha512-5QJKBDc+gNYVqL/skgFAP81Yuzo9R+EAf19d+EtsMF/i8kFUpNi3J/H01QD3Oo8zBQn+NzoCIFkpPLynoOzaJg==}
