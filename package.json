@@ -13,7 +13,7 @@
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged",
-    "commit-msg": "node scripts/verifyCommit.mjs $1"
+    "commit-msg": "npm run commitlint"
   },
   "lint-staged": {
     "src/*.{js,jsx,ts,tsx}": [
@@ -46,6 +46,8 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.4.0",
+    "@commitlint/config-conventional": "^19.2.2",
     "@types/lodash-es": "^4.17.6",
     "@types/node": "^18.11.13",
     "@types/react": "^18.3.3",
