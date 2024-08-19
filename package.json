@@ -9,11 +9,10 @@
     "prettier": "prettier -c --write **/*.{js,jsx,tsx,ts,less,md,json}",
     "preview": "vite preview",
     "prepare": "simple-git-hooks",
-    "lint-staged": "lint-staged",
     "commitlint": "commitlint --edit"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm exec lint-staged --concurrent false",
+    "pre-commit": "npx lint-staged",
     "commit-msg": "node scripts/verifyCommit.mjs $1"
   },
   "lint-staged": {
@@ -38,6 +37,7 @@
     "lodash-es": "^4.17.21",
     "moment": "^2.30.1",
     "p-map": "^7.0.2",
+    "picocolors": "^1.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-helmet": "^6.1.0",
@@ -46,8 +46,6 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.4.0",
-    "@commitlint/config-conventional": "^19.2.2",
     "@types/lodash-es": "^4.17.6",
     "@types/node": "^18.11.13",
     "@types/react": "^18.3.3",

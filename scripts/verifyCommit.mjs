@@ -26,7 +26,7 @@ if (
     ) +
     `    ${colors.green(`feat: add 'comments' option`)}\n` +
     `    ${colors.green(`fix: handle events on blur (close #28)`)}\n\n` +
-    colors.red(`  See .github/commit-convention.md for more details.\n`),
+    colors.red(`  See https://github.com/woai3c/Front-end-articles/blob/master/git%20commit%20style.md \n`),
   );
   process.exit(1);
 }
