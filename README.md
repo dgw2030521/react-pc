@@ -1,8 +1,8 @@
-# h5 模板
+# pc 模板
 
 ## React + TypeScript + Vite
 
-## antd-mobile + form-render-mobile
+## antd + form-render
 
 ## eslint + prettier
 
