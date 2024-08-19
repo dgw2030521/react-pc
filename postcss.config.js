@@ -1,6 +1,13 @@
 module.exports = {
   plugins: {
-    autoprefixer: {}, // 用来给不同的浏览器自动添加相应前缀，如-webkit-，-moz-等等
+    // autoprefixer: {}, // 用来给不同的浏览器自动添加相应前缀，如-webkit-，-moz-等等
+    'postcss-import': {},
+    'postcss-url': {},
+    'postcss-aspect-ratio-mini': {},
+    'postcss-write-svg': {
+      utf8: false,
+    },
+    'postcss-cssnext': {},
     'postcss-px-to-viewport': {
       unitToConvert: 'px', // 要转化的单位
       viewportWidth: 1920, // UI设计稿的宽度
@@ -24,6 +31,16 @@ module.exports = {
       landscapeUnit: 'vw',
       // 横屏时使用的视口宽度
       landscapeWidth: 1338,
+    },
+    'postcss-viewport-units': {}, // 给vw、vh、vmin和vmax做适配的操作,这是实现vw布局必不可少的一个插件
+    'postcss-preset-env': {
+      browsers: 'last 2 versions', // 指定只对最近 2 个版本的浏览器进行兼容性处理。
+    },
+    cssnano: {
+      // 主要用来压缩和清理CSS代码。在Webpack中，cssnano和css-loader捆绑在一起，所以不需要自己加载它。
+      preset: 'advanced', // 重复调用
+      autoprefixer: false, // cssnext和cssnano都具有autoprefixer,事实上只需要一个，所以把默认的autoprefixer删除掉，然后把cssnano中的autoprefixer设置为false。
+      'postcss-zindex': false, // 只要启用了这个插件，z-index的值就会重置为1
     },
   },
 };
