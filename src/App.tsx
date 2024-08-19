@@ -1,16 +1,16 @@
 /**
  * 首页，不在router的context之中，所有hooks调用在BasicLayout中
  */
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, theme } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Vconsole from 'vconsole';
+import VConsole from 'vconsole';
 
 import routes from './router';
 import { LoginProvider } from './store/user';
 
-console.log('process.env.NODE_ENV', process.env.NODE_ENV);
+const { darkAlgorithm, compactAlgorithm } = theme;
 
 const router = createBrowserRouter(routes, {
   basename: import.meta.env.VITE_PUBLIC_PATH,
@@ -28,11 +28,15 @@ const initUserInfo: Partial<any> = {
 };
 
 const App = () => {
-  const vConsole = new Vconsole();
+  const vConsole = new VConsole();
   console.log(vConsole);
 
+  // 定制主题 https://ant.design/docs/react/customize-theme-cn
   return (
-    <ConfigProvider locale={zhCN}>
+    <ConfigProvider
+      locale={zhCN}
+      theme={{ algorithm: [darkAlgorithm, compactAlgorithm] }}
+    >
       <LoginProvider initUserInfo={initUserInfo}>
         <RouterProvider router={router} />
       </LoginProvider>
