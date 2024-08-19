@@ -6,7 +6,6 @@ module.exports = {
     'postcss-write-svg': {
       utf8: false,
     },
-    'postcss-cssnext': {},
     'postcss-px-to-viewport': {
       unitToConvert: 'px', // 要转化的单位
       viewportWidth: 1920, // UI设计稿的宽度
