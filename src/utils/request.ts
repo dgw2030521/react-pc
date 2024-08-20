@@ -37,7 +37,7 @@ interface AxiosConfig extends AxiosRequestConfig {
   noNotificationCodes?: Array<string | number>;
   errUrlFn?: Function | undefined;
   formDataUrls?: Array<string>;
-  isAllData?: boolean;
+  returnAllData?: boolean;
 }
 
 // 登录失效
@@ -127,6 +127,7 @@ const Request = (configParams: AxiosConfig) => {
       removePending(config);
 
       return new Promise<any>((resolve, reject) => {
+        // 请求成功，但是不是200，即业务错误
         if (status < 200 || status > 300) {
           reject(data);
         } else if (!data.success) {
@@ -155,7 +156,7 @@ const Request = (configParams: AxiosConfig) => {
           reject(data);
         } else {
           //   返回axios的response的完全体
-          if (configParams.isAllData) {
+          if (configParams.returnAllData) {
             resolve(data);
           } else {
             resolve(data.data);
@@ -174,7 +175,7 @@ const Request = (configParams: AxiosConfig) => {
 
 export const request = Request({
   loginErrUrl: '/login',
-  isAllData: true,
+  returnAllData: true,
 });
 
 export default Request;
