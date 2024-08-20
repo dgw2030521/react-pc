@@ -31,6 +31,7 @@ module.exports = {
       landscapeWidth: 1338,
     },
     'postcss-viewport-units': {}, // 给vw、vh、vmin和vmax做适配的操作,这是实现vw布局必不可少的一个插件
+    // 根据目标浏览器的兼容性要求，自动引入所需的Polyfill，提升代码的兼容性。
     'postcss-preset-env': {
       browsers: 'last 2 versions', // 指定只对最近 2 个版本的浏览器进行兼容性处理。
     },
