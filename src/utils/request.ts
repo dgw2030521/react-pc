@@ -15,7 +15,7 @@ import type {
 } from 'axios';
 import axios from 'axios';
 
-import { Response } from '@/utils/Common';
+import { Response } from '@/types/Common';
 
 const token_name = 'token';
 
@@ -46,10 +46,6 @@ const download = (response: AxiosResponse) => {
   window.URL.revokeObjectURL(url);
 };
 
-interface RequestConfig extends AxiosRequestConfig {
-  notice?: boolean;
-}
-
 interface PendingType {
   url?: string;
   method?: Method;
@@ -58,80 +54,32 @@ interface PendingType {
   cancel: Function;
 }
 
-interface AxiosConfig extends AxiosRequestConfig {
-  token?: string | undefined;
-  loginErrUrl?: string;
-  loginErrFn?: Function | undefined;
-  noNotificationCodes?: Array<string | number>;
-  errUrlFn?: Function | undefined;
-  returnAllData?: boolean;
-}
-
 // 登录失效
 const CancelToken = axios.CancelToken;
 const source = CancelToken.source();
 const controller = new AbortController();
-
-const pendingList: Array<PendingType> = [];
-
-// 移除重复请求
-const removePending = (config: RequestConfig) => {
-  for (const key in pendingList) {
-    const item: number = +key;
-    const list: PendingType = pendingList[key];
-    // 当前请求在数组中存在时执行函数体
-    if (
-      list.url === config.url &&
-      list.method === config.method &&
-      JSON.stringify(list.params) === JSON.stringify(config.params) &&
-      JSON.stringify(list.data) === JSON.stringify(config.data)
-    ) {
-      // 执行取消操作
-      list.cancel('操作太频繁，请稍后再试');
-      // 从数组中移除记录
-      pendingList.splice(item, 1);
-    }
-  }
-};
-
-// 默认配置
-const initAxiosConfig = {
-  token: undefined, // token 优先级高于 tokenKey
-  loginErrUrl: undefined, // 登录失效跳转地址
-  loginErrFn: undefined, // 登录失效执行函数，设置了的话，loginErrUrl失效
-  noNotificationCodes: [], // 接口返回的code值，哪些不需要弹出提示
-  errUrlFn: undefined, // 404处理方法
-
-  isAllData: false, // 是否返回所有信息
-};
 
 const axiosInstance = axios.create({
   baseURL: host,
   timeout: 10000,
   withCredentials: false,
   responseType: 'json',
+  // responseType: 'blob'; 下载
   headers: {
     'Content-Type': 'application/json;charset=utf-8',
   },
 });
 
-const configParams = {
-  ...initAxiosConfig,
-  ...{
-    loginErrUrl: '/login',
-    returnAllData: true,
-  },
-} as AxiosConfig;
-
+// 请求拦截器
 axiosInstance.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    removePending(config);
-
-    config.headers.Authorization =
-      configParams.token || localStorage.getItem(token_name);
+  (req: InternalAxiosRequestConfig) => {
+    req.headers.Authorization = localStorage.getItem(token_name);
+    if (req.data instanceof FormData) {
+      req.headers['Content-Type'] = 'multipart/form-data;charset=utf-8';
+    }
 
     return {
-      ...config,
+      ...req,
       cancelToken: source.token,
       signal: controller.signal,
     };
@@ -142,7 +90,67 @@ axiosInstance.interceptors.request.use(
 );
 
 /**
- * 实例的请求处理
+ * 响应请求处理
+ */
+// axiosInstance.interceptors.response.use(
+//   (resp: AxiosResponse<Response<any>>) => {
+//     // if (
+//     //   resp.data instanceof Blob &&
+//     //   resp.data.type?.includes('application/json')
+//     // ) {
+//     //   const text = await resp.data?.text();
+//     //   const json = JSON.parse(text);
+//     //   return {
+//     //     ...resp,
+//     //     data: json,
+//     //   };
+//     // }
+//     // return resp;
+//
+//     return new Promise((resolve, reject) => {
+//       const { status } = resp;
+//
+//       const result = resp.data;
+//
+//       if (status < 200 || status > 300) {
+//         reject(result);
+//       }
+//
+//       // 下载
+//       if (result instanceof Blob) {
+//         download(resp);
+//         resolve(resp);
+//       }
+//       // 普通返回
+//       if (!result.success) {
+//         if (
+//           result.errorCode === '401' ||
+//           result.errorCode === '401_1' ||
+//           result.errorCode === '401_0' ||
+//           result.errorCode === '003'
+//         ) {
+//           // 登录失效后，取消后续的http请求
+//           source.cancel('登录失效');
+//           // 不支持 message 参数
+//           controller.abort();
+//
+//           // 登录失效后的处理
+//           // window.location.href = configParams.loginErrUrl;
+//         }
+//         // @NOTICE 业务失败
+//         reject(result);
+//       } else {
+//         resolve(result.data);
+//       }
+//     });
+//   },
+//   err => {
+//     return Promise.reject(err);
+//   },
+// );
+
+/**
+ * 响应请求处理
  */
 axiosInstance.interceptors.response.use(
   async response => {
@@ -164,58 +172,44 @@ axiosInstance.interceptors.response.use(
   },
 );
 
-class RPC {
-  static async axiosRequest<T>(req: AxiosRequestConfig) {
-    const resp = await axiosInstance.request(req);
-    const { status, config } = resp;
-    removePending(config);
+async function axiosRequest<T>(req: AxiosRequestConfig) {
+  const resp = await axiosInstance.request<Response<T>>(req);
+  const { status } = resp;
 
-    const result = resp.data as Response<T>;
+  const result = resp.data;
 
-    if (status < 200 || status > 300) {
-      throw result;
+  if (status < 200 || status > 300) {
+    throw result;
+  }
+
+  // 下载
+  if (result instanceof Blob) {
+    return download(resp);
+  }
+  // 普通返回
+  if (!result.success) {
+    if (
+      result.errorCode === '401' ||
+      result.errorCode === '401_1' ||
+      result.errorCode === '401_0' ||
+      result.errorCode === '003'
+    ) {
+      // 登录失效后，取消后续的http请求
+      source.cancel('登录失效');
+      // 不支持 message 参数
+      controller.abort();
+
+      // 登录失效后的处理
+      // window.location.href = configParams.loginErrUrl;
     }
-
-    // 下载
-    if (result instanceof Blob) {
-      return download(resp);
-    }
-    // 普通返回
-    if (!result.success) {
-      if (
-        result.errorCode === '401' ||
-        result.errorCode === '401_1' ||
-        result.errorCode === '401_0' ||
-        result.errorCode === '003'
-      ) {
-        // 登录失效后，取消后续的http请求
-        source.cancel('登录失效');
-        // 不支持 message 参数
-        controller.abort();
-
-        // 登录失效后的处理
-        if (configParams.loginErrFn) {
-          configParams.loginErrFn();
-        } else if (configParams.loginErrUrl) {
-          window.location.href = configParams.loginErrUrl;
-        }
-      } else {
-        if (!configParams.noNotificationCodes?.includes(result.errorCode)) {
-          // message.error(data.errorDesc);
-        }
-      }
-      throw result;
-    } else {
-      //   返回axios的response的完全体
-      if (configParams.returnAllData) {
-        return result;
-      }
-      return result.data;
-    }
+    // @NOTICE 业务失败
+    throw result;
+  } else {
+    return result.data;
   }
 }
 
-function rpcRequest<T>(props: Partial<AxiosRequestConfig>) {
+function rpcRequest<T>(props: Partial<AxiosRequestConfig>): Promise<T | void> {
   const req: AxiosRequestConfig = {
     // `paramsSerializer` 是一个负责 `params` 序列化的函数
     // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
@@ -242,7 +236,7 @@ function rpcRequest<T>(props: Partial<AxiosRequestConfig>) {
     }
   }
 
-  return RPC.axiosRequest<T>(req);
+  return axiosRequest<T>(req);
 }
 
 export { axiosInstance, rpcRequest };

@@ -52,7 +52,7 @@ export default ({ command, mode }: ConfigEnv) => {
           // target: 'http://192.168.3.200:60105',
           // target: 'http://test-gaode-area-traffic-cockpit.deepinnet.com/smarttrafficpolice',
           target:
-            'http://dev-gaode-area-traffic-cockpit.deepinnet.com/smarttrafficpolice',
+            'http://test-gaode-area-traffic-cockpit.deepinnet.com/smarttrafficpolice',
           changeOrigin: true,
         },
         // '/app-dev': {

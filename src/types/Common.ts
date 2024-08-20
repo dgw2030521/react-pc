@@ -1,4 +1,15 @@
 /**
+ * 分页数据
+ */
+export interface PageData<T> {
+  list: T[];
+  pageNum: number;
+  pageSize: number;
+  total: number;
+  totalPage: number;
+}
+
+/**
  * 对象响应
  */
 export interface Response<T> {
@@ -8,15 +19,4 @@ export interface Response<T> {
   errorType: string;
   exceptionType: string;
   success: boolean;
-}
-
-/**
- * 分页数据
- */
-export interface PageData<T> {
-  list: T[];
-  pageNum: number;
-  pageSize: number;
-  total: number;
-  totalPage: number;
 }
