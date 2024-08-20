@@ -16,7 +16,7 @@
     "commit-msg": "npm run commitlint"
   },
   "lint-staged": {
-    "src/*.{js,jsx,ts,tsx}": [
+    "src/*.{js,jsx,ts,tsx,mjs,cjs}": [
       "eslint --cache --fix",
       "prettier --write"
     ],
