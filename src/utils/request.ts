@@ -175,13 +175,10 @@ axiosInstance.interceptors.response.use(
 async function axiosRequest<T>(req: AxiosRequestConfig) {
   const resp = await axiosInstance.request<Response<T>>(req);
   const { status } = resp;
-
   const result = resp.data;
-
   if (status < 200 || status > 300) {
     throw result;
   }
-
   // 下载
   if (result instanceof Blob) {
     return download(resp);
