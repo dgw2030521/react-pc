@@ -59,6 +59,28 @@ const CancelToken = axios.CancelToken;
 const source = CancelToken.source();
 const controller = new AbortController();
 
+// 取消重复请求
+const pending: Array<PendingType> = [];
+// 移除重复请求
+const removePending = (config: AxiosRequestConfig) => {
+  for (const key in pending) {
+    const item: number = +key;
+    const list: PendingType = pending[key];
+    // 当前请求在数组中存在时执行函数体
+    if (
+      list.url === config.url &&
+      list.method === config.method &&
+      JSON.stringify(list.params) === JSON.stringify(config.params) &&
+      JSON.stringify(list.data) === JSON.stringify(config.data)
+    ) {
+      // 执行取消操作
+      list.cancel('操作太频繁，请稍后再试');
+      // 从数组中移除记录
+      pending.splice(item, 1);
+    }
+  }
+};
+
 const axiosInstance = axios.create({
   baseURL: host,
   timeout: 10000,
@@ -78,6 +100,17 @@ axiosInstance.interceptors.request.use(
       req.headers['Content-Type'] = 'multipart/form-data;charset=utf-8';
     }
 
+    removePending(req);
+    req.cancelToken = new CancelToken(c => {
+      pending.push({
+        url: req.url,
+        method: `${req.method}`,
+        params: req.params,
+        data: req.data,
+        cancel: c,
+      });
+    });
+
     return {
       ...req,
       cancelToken: source.token,
@@ -94,6 +127,8 @@ axiosInstance.interceptors.request.use(
  */
 axiosInstance.interceptors.response.use(
   async response => {
+    removePending(response.config);
+
     if (
       response.data instanceof Blob &&
       response.data.type?.includes('application/json')
@@ -189,6 +224,8 @@ const request = {
     rpcRequest<T>({ ...config, url, method: 'GET' }),
   post: <T>(url: string, data: any, config?: Partial<AxiosRequestConfig>) =>
     rpcRequest<T>({ ...config, url, data, method: 'POST' }),
+  put: <T>(url: string, data: any, config?: Partial<AxiosRequestConfig>) =>
+    rpcRequest<T>({ ...config, url, data, method: 'PUT' }),
 };
 
-export { request, rpcRequest };
+export { axiosInstance as axios, request, rpcRequest };

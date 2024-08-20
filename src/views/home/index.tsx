@@ -1,7 +1,7 @@
 import { Button, Space } from 'antd';
 import React, { useEffect } from 'react';
 
-import { request, rpcRequest } from '@/utils/request';
+import { request } from '@/utils/request';
 
 interface IProps {
   list: any[];
@@ -18,14 +18,20 @@ export default function Home() {
         pageNum: 1,
         pageSize: 3,
       });
-
-      const result2 = await rpcRequest<IProps>({
-        url: '/area/page',
-        method: 'post',
-        data: { pageNum: 1, pageSize: 3 },
+      const result2 = await request.post<IProps>('/area/page', {
+        pageNum: 1,
+        pageSize: 3,
+      });
+      const result3 = await request.post<IProps>('/area/page', {
+        pageNum: 1,
+        pageSize: 3,
       });
 
-      console.log(result1, result2);
+      // const result2 = await rpcRequest<IProps>({
+      //   url: '/area/page',
+      //   method: 'post',
+      //   data: { pageNum: 1, pageSize: 3 },
+      // });
     } catch (e) {
       console.log(e);
     }
