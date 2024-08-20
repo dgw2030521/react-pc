@@ -15,7 +15,36 @@ import type {
 } from 'axios';
 import axios from 'axios';
 
+import { Response } from '@/utils/Common';
+
+const token_name = 'token';
+
 const host = import.meta.env.VITE_APP_DOMAIN;
+
+/**
+ * 下载文件功能
+ * @param response
+ */
+const download = (response: AxiosResponse) => {
+  const { data, headers } = response;
+  const fileName = headers['content-disposition'].replace(
+    /\w+;filename=(.*)/,
+    '$1',
+  ) as string;
+
+  // 此处当返回json文件时需要先对data进行JSON.stringify处理，其他类型文件不用做处理
+  // const blob = new Blob([JSON.stringify(data)], ...)
+  const blob = new Blob([data], { type: headers['content-type'] });
+  const dom = document.createElement('a');
+  const url = window.URL.createObjectURL(blob);
+  dom.href = url;
+  dom.download = decodeURI(fileName);
+  dom.style.display = 'none';
+  document.body.appendChild(dom);
+  dom.click();
+  dom.parentNode.removeChild(dom);
+  window.URL.revokeObjectURL(url);
+};
 
 interface RequestConfig extends AxiosRequestConfig {
   notice?: boolean;
@@ -30,13 +59,11 @@ interface PendingType {
 }
 
 interface AxiosConfig extends AxiosRequestConfig {
-  tokenKey?: string;
   token?: string | undefined;
   loginErrUrl?: string;
   loginErrFn?: Function | undefined;
   noNotificationCodes?: Array<string | number>;
   errUrlFn?: Function | undefined;
-  formDataUrls?: Array<string>;
   returnAllData?: boolean;
 }
 
@@ -69,113 +96,153 @@ const removePending = (config: RequestConfig) => {
 
 // 默认配置
 const initAxiosConfig = {
-  tokenKey: 'token', // token取值字段
   token: undefined, // token 优先级高于 tokenKey
   loginErrUrl: undefined, // 登录失效跳转地址
   loginErrFn: undefined, // 登录失效执行函数，设置了的话，loginErrUrl失效
   noNotificationCodes: [], // 接口返回的code值，哪些不需要弹出提示
   errUrlFn: undefined, // 404处理方法
-  formDataUrls: [], // 需要用formData提交的接口列表
+
   isAllData: false, // 是否返回所有信息
 };
 
 const axiosInstance = axios.create({
   baseURL: host,
   timeout: 10000,
+  withCredentials: false,
+  responseType: 'json',
+  headers: {
+    'Content-Type': 'application/json;charset=utf-8',
+  },
 });
 
-const Request = (configParams: AxiosConfig) => {
-  configParams = { ...initAxiosConfig, ...configParams };
+const configParams = {
+  ...initAxiosConfig,
+  ...{
+    loginErrUrl: '/login',
+    returnAllData: true,
+  },
+} as AxiosConfig;
 
-  axiosInstance.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
-      removePending(config);
+axiosInstance.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    removePending(config);
 
-      config.headers.Authorization =
-        configParams.token ||
-        localStorage.getItem(configParams.tokenKey as any);
+    config.headers.Authorization =
+      configParams.token || localStorage.getItem(token_name);
 
-      config.url = `${config.url}`;
+    return {
+      ...config,
+      cancelToken: source.token,
+      signal: controller.signal,
+    };
+  },
+  (err: AxiosError) => {
+    return Promise.reject(err);
+  },
+);
 
-      // 如果是formData上传类型
-      // https://axios-http.com/zh/docs/multipart
-      if (configParams.formDataUrls?.includes(config.url)) {
-        config.headers['Content-Type'] = 'multipart/form-data;charset=UTF-8';
-        config.headers.Accept = '*/*';
-      }
-
+/**
+ * 实例的请求处理
+ */
+axiosInstance.interceptors.response.use(
+  async response => {
+    if (
+      response.data instanceof Blob &&
+      response.data.type?.includes('application/json')
+    ) {
+      const text = await response.data?.text();
+      const json = JSON.parse(text);
       return {
-        ...config,
-        cancelToken: source.token,
-        signal: controller.signal,
+        ...response,
+        data: json,
       };
-    },
-    (err: AxiosError) => {
-      // notification.error({
-      //   message: '提示',
-      //   description: err.toString(),
-      // });
-      // eslint-disable-next-line prefer-promise-reject-errors
-      return Promise.reject({ ...err, data: null });
-    },
-  );
+    }
+    return response;
+  },
+  err => {
+    return Promise.reject(err);
+  },
+);
 
-  axiosInstance.interceptors.response.use(
-    (res: AxiosResponse) => {
-      const { status, data, config } = res;
+class RPC {
+  static async axiosRequest<T>(req: AxiosRequestConfig) {
+    const resp = await axiosInstance.request(req);
+    const { status, config } = resp;
+    removePending(config);
 
-      removePending(config);
+    const result = resp.data as Response<T>;
 
-      return new Promise<any>((resolve, reject) => {
-        // 请求成功，但是不是200，即业务错误
-        if (status < 200 || status > 300) {
-          reject(data);
-        } else if (!data.success) {
-          if (
-            data.errorCode === '401' ||
-            data.errorCode === '401_1' ||
-            data.errorCode === '401_0' ||
-            data.errorCode === '003'
-          ) {
-            // 登录失效后，取消后续的http请求
-            source.cancel('登录失效');
-            // 不支持 message 参数
-            controller.abort();
+    if (status < 200 || status > 300) {
+      throw result;
+    }
 
-            // 登录失效后的处理
-            if (configParams.loginErrFn) {
-              configParams.loginErrFn();
-            } else if (configParams.loginErrUrl) {
-              window.location.href = configParams.loginErrUrl;
-            }
-          } else {
-            if (!configParams.noNotificationCodes?.includes(data.errorCode)) {
-              // message.error(data.errorDesc);
-            }
-          }
-          reject(data);
-        } else {
-          //   返回axios的response的完全体
-          if (configParams.returnAllData) {
-            resolve(data);
-          } else {
-            resolve(data.data);
-          }
+    // 下载
+    if (result instanceof Blob) {
+      return download(resp);
+    }
+    // 普通返回
+    if (!result.success) {
+      if (
+        result.errorCode === '401' ||
+        result.errorCode === '401_1' ||
+        result.errorCode === '401_0' ||
+        result.errorCode === '003'
+      ) {
+        // 登录失效后，取消后续的http请求
+        source.cancel('登录失效');
+        // 不支持 message 参数
+        controller.abort();
+
+        // 登录失效后的处理
+        if (configParams.loginErrFn) {
+          configParams.loginErrFn();
+        } else if (configParams.loginErrUrl) {
+          window.location.href = configParams.loginErrUrl;
         }
-      });
-    },
-    (err: AxiosError) => {
-      //  返回给view层去处理
-      return Promise.reject(err);
-    },
-  );
+      } else {
+        if (!configParams.noNotificationCodes?.includes(result.errorCode)) {
+          // message.error(data.errorDesc);
+        }
+      }
+      throw result;
+    } else {
+      //   返回axios的response的完全体
+      if (configParams.returnAllData) {
+        return result;
+      }
+      return result.data;
+    }
+  }
+}
 
-  return axiosInstance;
-};
+function rpcRequest<T>(props: Partial<AxiosRequestConfig>) {
+  const req: AxiosRequestConfig = {
+    // `paramsSerializer` 是一个负责 `params` 序列化的函数
+    // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
+    // paramsSerializer(params) {
+    //   return Qs.stringify(params, { arrayFormat: 'brackets' });
+    // },
+    ...props,
+    method: props.method || 'GET',
+  };
 
-export const request = Request({
-  loginErrUrl: '/login',
-  returnAllData: true,
-});
+  if (props.data) {
+    const { data } = props;
+    // 文件上传
+    if (
+      req.headers?.['Content-Type'] === 'multipart/form-data' ||
+      data instanceof FormData
+    ) {
+      req.data = data;
+    } else if (req.method.toUpperCase() === 'GET') {
+      req.params = data;
+    } else {
+      // 转成string
+      req.data = JSON.stringify(data);
+    }
+  }
 
-export default Request;
+  return RPC.axiosRequest<T>(req);
+}
+
+export { axiosInstance, rpcRequest };

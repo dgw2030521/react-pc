@@ -47,15 +47,22 @@ export default ({ command, mode }: ConfigEnv) => {
       port: 3001,
       cors: true,
       proxy: {
-        // 代理ajax请求
-        '/app-dev': {
-          target: 'http://172.27.237.121:31954/',
-          // target: 'http://172.43.60.108:31766/',
-
+        '/smarttrafficpolice': {
+          rewrite: path => path.replace(/^\/smarttrafficpolice/, ''),
+          // target: 'http://192.168.3.200:60105',
+          // target: 'http://test-gaode-area-traffic-cockpit.deepinnet.com/smarttrafficpolice',
+          target:
+            'http://dev-gaode-area-traffic-cockpit.deepinnet.com/smarttrafficpolice',
           changeOrigin: true,
-          rewrite: path =>
-            path.replace(/^\/app-dev\//, '/zczd/customer/app-customer/'),
         },
+        // '/app-dev': {
+        //   target: 'http://172.27.237.121:31954/',
+        //   // target: 'http://172.43.60.108:31766/',
+        //
+        //   changeOrigin: true,
+        //   rewrite: path =>
+        //     path.replace(/^\/app-dev\//, '/zczd/customer/app-customer/'),
+        // },
       },
     },
     css: {
