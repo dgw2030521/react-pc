@@ -173,40 +173,48 @@ axiosInstance.interceptors.response.use(
 );
 
 async function axiosRequest<T>(req: AxiosRequestConfig) {
-  const resp = await axiosInstance.request<Response<T>>(req);
-  const { status } = resp;
-  const result = resp.data;
-  if (status < 200 || status > 300) {
-    throw result;
-  }
-  // 下载
-  if (result instanceof Blob) {
-    return download(resp);
-  }
-  // 普通返回
-  if (!result.success) {
-    if (
-      result.errorCode === '401' ||
-      result.errorCode === '401_1' ||
-      result.errorCode === '401_0' ||
-      result.errorCode === '003'
-    ) {
-      // 登录失效后，取消后续的http请求
-      source.cancel('登录失效');
-      // 不支持 message 参数
-      controller.abort();
+  return new Promise<T>((resolve, reject) => {
+    axiosInstance
+      .request<Response<T>>(req)
+      .then(resp => {
+        const { status } = resp;
+        const result = resp.data;
+        if (status < 200 || status > 300) {
+          reject(result);
+        }
+        // 下载
+        if (result instanceof Blob) {
+          return download(resp);
+        }
+        // 普通返回
+        if (!result.success) {
+          if (
+            result.errorCode === '401' ||
+            result.errorCode === '401_1' ||
+            result.errorCode === '401_0' ||
+            result.errorCode === '003'
+          ) {
+            // 登录失效后，取消后续的http请求
+            source.cancel('登录失效');
+            // 不支持 message 参数
+            controller.abort();
 
-      // 登录失效后的处理
-      // window.location.href = configParams.loginErrUrl;
-    }
-    // @NOTICE 业务失败
-    throw result;
-  } else {
-    return result.data;
-  }
+            // 登录失效后的处理
+            // window.location.href = configParams.loginErrUrl;
+          }
+          // @NOTICE 业务失败
+          reject(result);
+        } else {
+          resolve(result.data);
+        }
+      })
+      .catch(err => {
+        reject(err);
+      });
+  });
 }
 
-function rpcRequest<T>(props: Partial<AxiosRequestConfig>): Promise<T | void> {
+function rpcRequest<T>(props: Partial<AxiosRequestConfig>) {
   const req: AxiosRequestConfig = {
     // `paramsSerializer` 是一个负责 `params` 序列化的函数
     // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
@@ -236,4 +244,11 @@ function rpcRequest<T>(props: Partial<AxiosRequestConfig>): Promise<T | void> {
   return axiosRequest<T>(req);
 }
 
-export { axiosInstance, rpcRequest };
+const request = {
+  get: <T>(props: AxiosRequestConfig) =>
+    rpcRequest<T>({ ...props, method: 'GET' }),
+  post: <T>(url: string, data: any, props?: AxiosRequestConfig) =>
+    rpcRequest<T>({ ...props, url, data, method: 'POST' }),
+};
+
+export { request, rpcRequest };

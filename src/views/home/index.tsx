@@ -1,7 +1,7 @@
 import { Button, Space } from 'antd';
 import React, { useEffect } from 'react';
 
-import { axiosInstance as request, rpcRequest } from '@/utils/request';
+import { request, rpcRequest } from '@/utils/request';
 
 interface IProps {
   list: any[];
