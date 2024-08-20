@@ -92,66 +92,6 @@ axiosInstance.interceptors.request.use(
 /**
  * 响应请求处理
  */
-// axiosInstance.interceptors.response.use(
-//   (resp: AxiosResponse<Response<any>>) => {
-//     // if (
-//     //   resp.data instanceof Blob &&
-//     //   resp.data.type?.includes('application/json')
-//     // ) {
-//     //   const text = await resp.data?.text();
-//     //   const json = JSON.parse(text);
-//     //   return {
-//     //     ...resp,
-//     //     data: json,
-//     //   };
-//     // }
-//     // return resp;
-//
-//     return new Promise((resolve, reject) => {
-//       const { status } = resp;
-//
-//       const result = resp.data;
-//
-//       if (status < 200 || status > 300) {
-//         reject(result);
-//       }
-//
-//       // 下载
-//       if (result instanceof Blob) {
-//         download(resp);
-//         resolve(resp);
-//       }
-//       // 普通返回
-//       if (!result.success) {
-//         if (
-//           result.errorCode === '401' ||
-//           result.errorCode === '401_1' ||
-//           result.errorCode === '401_0' ||
-//           result.errorCode === '003'
-//         ) {
-//           // 登录失效后，取消后续的http请求
-//           source.cancel('登录失效');
-//           // 不支持 message 参数
-//           controller.abort();
-//
-//           // 登录失效后的处理
-//           // window.location.href = configParams.loginErrUrl;
-//         }
-//         // @NOTICE 业务失败
-//         reject(result);
-//       } else {
-//         resolve(result.data);
-//       }
-//     });
-//   },
-//   err => {
-//     return Promise.reject(err);
-//   },
-// );
-
-/**
- * 响应请求处理
- */
 axiosInstance.interceptors.response.use(
   async response => {
     if (
