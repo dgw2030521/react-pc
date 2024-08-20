@@ -7,6 +7,7 @@ import viteCompression from 'vite-plugin-compression';
 
 // https://vitejs.dev/config/
 // https://vitejs.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated
+
 export default ({ command, mode }: ConfigEnv) => {
   const currentEnv = loadEnv(mode, process.cwd());
   return defineConfig({
