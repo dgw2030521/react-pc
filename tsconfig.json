@@ -12,6 +12,7 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "resolveJsonModule": true,
+    // 启用 isolatedModules，保证文件都是module的方式使用
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
