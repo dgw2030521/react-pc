@@ -101,6 +101,7 @@ module.exports = {
     '@typescript-eslint/no-unsafe-argument': 0, // 允许参数
     '@typescript-eslint/no-unsafe-assignment': 0,
     '@typescript-eslint/no-unsafe-member-access': 0,
+
     // jsx
     'jsx-a11y/no-static-element-interactions': 0, // 允许静态元素交互
     'jsx-a11y/anchor-has-content': 0,
