@@ -245,10 +245,10 @@ function rpcRequest<T>(props: Partial<AxiosRequestConfig>) {
 }
 
 const request = {
-  get: <T>(props: AxiosRequestConfig) =>
-    rpcRequest<T>({ ...props, method: 'GET' }),
-  post: <T>(url: string, data: any, props?: AxiosRequestConfig) =>
-    rpcRequest<T>({ ...props, url, data, method: 'POST' }),
+  get: <T>(url: string, config?: Partial<AxiosRequestConfig>) =>
+    rpcRequest<T>({ ...config, url, method: 'GET' }),
+  post: <T>(url: string, data: any, config?: Partial<AxiosRequestConfig>) =>
+    rpcRequest<T>({ ...config, url, data, method: 'POST' }),
 };
 
 export { request, rpcRequest };
