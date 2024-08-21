@@ -82,4 +82,40 @@ const download = (response: AxiosResponse) => {
   window.URL.revokeObjectURL(url);
 };
 
-export { addPendingRequest, download, removePendingRequest };
+// 请求队列，缓存发出的请求
+const cacheRequest = {};
+/**
+ * @desc 删除缓存队列中的请求
+ * @param {String} config 本次请求的唯一标识 url&method
+ */
+function removeCacheRequest(config: InternalAxiosRequestConfig) {
+  const { url, method } = config;
+  const reqKey = `${url}&${method}`;
+  if (cacheRequest[reqKey]) {
+    // 通过AbortController实例上的abort来进行请求的取消
+    cacheRequest[reqKey].abort();
+    delete cacheRequest[reqKey];
+  }
+}
+/**
+ * 用于把当前请求信息添加到pendingRequest对象中；
+ * @param config
+ */
+function addCacheRequest(config: InternalAxiosRequestConfig) {
+  const { url, method } = config;
+  // 请求地址和请求方式组成唯一标识，将这个标识作为取消函数的key，保存到请求队列中
+  const reqKey = `${url}&${method}`;
+  removeCacheRequest(config);
+  // 将请求加入请求队列，通过AbortController来进行手动取消
+  const controller = new AbortController();
+  config.signal = controller.signal;
+  cacheRequest[reqKey] = controller;
+}
+
+export {
+  addCacheRequest,
+  addPendingRequest,
+  download,
+  removeCacheRequest,
+  removePendingRequest,
+};

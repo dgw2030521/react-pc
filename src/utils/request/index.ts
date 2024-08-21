@@ -16,9 +16,9 @@ import axios from 'axios';
 
 import { Response } from '@/types/Common';
 import {
-  addPendingRequest,
+  addCacheRequest,
   download,
-  removePendingRequest,
+  removeCacheRequest,
 } from '@/utils/request/tools';
 
 const token_name = 'token';
@@ -52,10 +52,11 @@ axiosInstance.interceptors.request.use(
     const token = localStorage.getItem(token_name);
     if (token) reqConfig.headers.Authorization = token;
 
-    // 检查是否存在重复请求，若存在则取消已发的请求
-    removePendingRequest(reqConfig);
-    // 把当前请求信息添加到pendingRequest对象中
-    addPendingRequest(reqConfig);
+    // removePendingRequest(reqConfig);
+    // addPendingRequest(reqConfig);
+
+    removeCacheRequest(reqConfig);
+    addCacheRequest(reqConfig);
 
     return {
       ...reqConfig,
@@ -95,12 +96,15 @@ axiosInstance.interceptors.response.use(
       }
       return Promise.reject(res);
     }
-    removePendingRequest(res.config); // 从pendingRequest对象中移除请求
+    // removePendingRequest(res.config); // 从pendingRequest对象中移除请求
+    removeCacheRequest(res.config);
     return Promise.resolve(res);
   },
   error => {
-    // 从pendingRequest对象中移除请求
-    removePendingRequest(error.config || {});
+    // // 从pendingRequest对象中移除请求
+    // removePendingRequest(error.config || {});
+    removeCacheRequest(error.config);
+
     if (axios.isCancel(error)) {
       return Promise.reject(error);
     }
