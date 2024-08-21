@@ -13,6 +13,7 @@ import type {
   InternalAxiosRequestConfig,
 } from 'axios';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 
 import { Response } from '@/types/Common';
 import {
@@ -39,16 +40,6 @@ const axiosInstance = axios.create({
     Authorization: localStorage.getItem(token_name),
   },
 });
-
-// 增加retry配置
-// axiosRetry(axiosInstance, {
-//   retries: 4,
-//   retryCondition: err =>
-//     axiosRetry.isNetworkOrIdempotentRequestError(err) ||
-//     err.response.status === 404,
-//   shouldResetTimeout: true,
-//   retryDelay: axiosRetry.linearDelay(),
-// });
 
 // 请求拦截器
 axiosInstance.interceptors.request.use(
@@ -166,6 +157,16 @@ axiosInstance.interceptors.response.use(
     }
   },
 );
+
+// 增加retry配置
+axiosRetry(axiosInstance, {
+  retries: 4,
+  retryCondition: err =>
+    axiosRetry.isNetworkOrIdempotentRequestError(err) ||
+    err.response.status === 404,
+  shouldResetTimeout: true,
+  retryDelay: axiosRetry.linearDelay(),
+});
 
 async function axiosRequest<T>(req: Partial<AxiosRequestConfig>) {
   return new Promise<T>((resolve, reject) => {
