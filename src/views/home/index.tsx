@@ -1,7 +1,7 @@
 import { Button, Space } from 'antd';
 import React, { useEffect } from 'react';
 
-import { request, rpcRequest } from '@/utils/request';
+import { axiosRequest, request } from '@/utils/request';
 
 interface IProps {
   list: any[];
@@ -21,7 +21,7 @@ export default function Home() {
 
       console.log(result1);
 
-      const result2 = await rpcRequest<IProps>({
+      const result2 = await axiosRequest<IProps>({
         url: '/area/page',
         method: 'post',
         data: { pageNum: 1, pageSize: 3 },

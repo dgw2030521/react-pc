@@ -79,6 +79,7 @@ const axiosInstance = axios.create({
 // 请求拦截器
 axiosInstance.interceptors.request.use(
   (reqConfig: InternalAxiosRequestConfig) => {
+    // FormData的时候需要特殊处理，或者两个都自己设置
     if (reqConfig.data instanceof FormData) {
       reqConfig.headers['Content-Type'] = 'multipart/form-data;charset=utf-8';
     }
@@ -168,7 +169,7 @@ axiosInstance.interceptors.response.use(
   },
 );
 
-async function axiosRequest<T>(req: AxiosRequestConfig) {
+async function axiosRequest<T>(req: Partial<AxiosRequestConfig>) {
   return new Promise<T>((resolve, reject) => {
     axiosInstance
       .request<Response<T>>(req)
@@ -204,43 +205,13 @@ async function axiosRequest<T>(req: AxiosRequestConfig) {
   });
 }
 
-function rpcRequest<T>(props: Partial<AxiosRequestConfig>) {
-  const req: AxiosRequestConfig = {
-    // `paramsSerializer` 是一个负责 `params` 序列化的函数
-    // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
-    // paramsSerializer(params) {
-    //   return Qs.stringify(params, { arrayFormat: 'brackets' });
-    // },
-    ...props,
-    method: props.method || 'GET',
-  };
-
-  if (props.data) {
-    const { data } = props;
-    // 文件上传
-    if (
-      req.headers?.['Content-Type'] === 'multipart/form-data' ||
-      data instanceof FormData
-    ) {
-      req.data = data;
-    } else if (req.method.toUpperCase() === 'GET') {
-      req.params = data;
-    } else {
-      // 转成string
-      req.data = JSON.stringify(data);
-    }
-  }
-
-  return axiosRequest<T>(req);
-}
-
 const request = {
   get: <T>(url: string, config?: Partial<AxiosRequestConfig>) =>
-    rpcRequest<T>({ ...config, url, method: 'GET' }),
+    axiosRequest<T>({ ...config, url, method: 'GET' }),
   post: <T>(url: string, data: any, config?: Partial<AxiosRequestConfig>) =>
-    rpcRequest<T>({ ...config, url, data, method: 'POST' }),
+    axiosRequest<T>({ ...config, url, data, method: 'POST' }),
   put: <T>(url: string, data: any, config?: Partial<AxiosRequestConfig>) =>
-    rpcRequest<T>({ ...config, url, data, method: 'PUT' }),
+    axiosRequest<T>({ ...config, url, data, method: 'PUT' }),
 };
 
-export { axiosInstance as axios, request, rpcRequest };
+export { axiosInstance as axios, axiosRequest, request };
