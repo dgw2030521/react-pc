@@ -13,52 +13,20 @@
 import type {
   AxiosError,
   AxiosRequestConfig,
-  AxiosResponse,
   InternalAxiosRequestConfig,
-  Method,
 } from 'axios';
 import axios from 'axios';
 
 import { Response } from '@/types/Common';
+import {
+  addPendingRequest,
+  download,
+  removePendingRequest,
+} from '@/utils/request/tools';
 
 const token_name = 'token';
 
 const host = import.meta.env.VITE_APP_DOMAIN;
-
-/**
- * 下载文件功能
- * @param response
- */
-const download = (response: AxiosResponse) => {
-  const { data, headers } = response;
-  const fileName = headers['content-disposition'].replace(
-    /\w+;filename=(.*)/,
-    '$1',
-  ) as string;
-
-  // 此处当返回json文件时需要先对data进行JSON.stringify处理，其他类型文件不用做处理
-  // const blob = new Blob([JSON.stringify(data)], ...)
-  const blob = new Blob([data], { type: headers['content-type'] });
-  const dom = document.createElement('a');
-  const url = window.URL.createObjectURL(blob);
-  dom.href = url;
-  dom.download = decodeURI(fileName);
-  dom.style.display = 'none';
-  document.body.appendChild(dom);
-  dom.click();
-  dom.parentNode.removeChild(dom);
-  window.URL.revokeObjectURL(url);
-};
-
-interface PendingType {
-  url?: string;
-  method?: Method;
-  params: any;
-  data: any;
-  cancel: Function;
-}
-// 取消重复请求
-const pending: Array<PendingType> = [];
 
 const controller = new AbortController();
 
@@ -87,6 +55,11 @@ axiosInstance.interceptors.request.use(
     const token = localStorage.getItem(token_name);
     if (token) reqConfig.headers.Authorization = token;
 
+    // 检查是否存在重复请求，若存在则取消已发的请求
+    removePendingRequest(reqConfig);
+    // 把当前请求信息添加到pendingRequest对象中
+    addPendingRequest(reqConfig);
+
     return {
       ...reqConfig,
       signal: controller.signal,
@@ -102,8 +75,9 @@ axiosInstance.interceptors.request.use(
  */
 axiosInstance.interceptors.response.use(
   async response => {
-    // 下载文件
+    // 特殊响应，下载文件
     if (
+      response.config.responseType === 'blob' &&
       response.data instanceof Blob &&
       response.data.type?.includes('application/json')
     ) {
@@ -115,11 +89,19 @@ axiosInstance.interceptors.response.use(
       };
     }
     if (response.status === 200) {
+      // 从pendingRequest对象中移除请求
+      removePendingRequest(response.config);
       return Promise.resolve(response);
     }
     return Promise.reject(response);
   },
   error => {
+    // 从pendingRequest对象中移除请求
+    removePendingRequest(error.config || {});
+    if (axios.isCancel(error)) {
+      // console.log(`已取消的重复请求：${error.message}`);
+      return Promise.reject(error);
+    }
     if (error.response.status) {
       switch (error.response.status) {
         // 401: 未登录

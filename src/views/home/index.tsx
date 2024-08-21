@@ -1,7 +1,7 @@
 import { Button, Space } from 'antd';
 import React, { useEffect } from 'react';
 
-import { axiosRequest, request } from '@/utils/request';
+import { request } from '@/utils/request';
 
 interface IProps {
   list: any[];
@@ -14,21 +14,12 @@ interface IProps {
 export default function Home() {
   const getData = async () => {
     try {
-      const result1 = await request.post<IProps>('/area/page', {
+      const result = await request.post<IProps>('/area/page', {
         pageNum: 1,
         pageSize: 3,
-        s: 1,
       });
 
-      console.log('111', result1);
-
-      const result2 = await axiosRequest<IProps>({
-        url: '/area/page',
-        method: 'post',
-        data: { pageNum: 1, pageSize: 3, s: 2 },
-      });
-
-      console.log('222', result2);
+      console.log('111', result);
     } catch (e) {
       console.log(e);
     }
@@ -36,10 +27,22 @@ export default function Home() {
 
   useEffect(() => {
     getData();
+    getData();
+    getData();
+    getData();
+    getData();
+    getData();
+    getData();
+    getData();
   }, []);
   return (
     <Space style={{ width: '100%' }}>
-      <Button type="primary" onClick={() => {}}>
+      <Button
+        type="primary"
+        onClick={() => {
+          getData();
+        }}
+      >
         按钮1
       </Button>
       <Button>按钮2</Button>
