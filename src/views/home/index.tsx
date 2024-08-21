@@ -1,5 +1,5 @@
 import { Button, Space } from 'antd';
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { request } from '@/utils/request';
 
@@ -14,6 +14,18 @@ interface IProps {
 export default function Home() {
   const getData = async () => {
     try {
+      const result = await request.post<IProps>('/area/page', {
+        pageNum: 1,
+        pageSize: 3,
+      });
+
+      console.log(result);
+    } catch (e) {
+      // console.log(e);
+    }
+  };
+  const getData1 = async () => {
+    try {
       const result = await request.post<IProps>('/area/page1', {
         pageNum: 1,
         pageSize: 3,
@@ -21,31 +33,40 @@ export default function Home() {
 
       console.log(result);
     } catch (e) {
-      console.log(e);
+      // console.log(e);
     }
   };
 
-  useEffect(() => {
-    getData();
-    // getData();
-    // getData();
-    // getData();
-    // getData();
-    // getData();
-    // getData();
-    // getData();
-  }, []);
   return (
-    <Space style={{ width: '100%' }}>
+    <Space style={{ width: '100%', padding: 50 }}>
       <Button
-        type="primary"
         onClick={() => {
           getData();
         }}
       >
-        按钮1
+        正常请求
       </Button>
-      <Button>按钮2</Button>
+      <Button
+        onClick={() => {
+          getData();
+          getData();
+          getData();
+          getData();
+          getData();
+          getData();
+          getData();
+          getData();
+        }}
+      >
+        取消重复请求
+      </Button>
+      <Button
+        onClick={() => {
+          getData1();
+        }}
+      >
+        请求重试
+      </Button>
     </Space>
   );
 }

@@ -31,7 +31,7 @@ const App = () => {
   return (
     <ConfigProvider
       locale={zhCN}
-      theme={{ algorithm: [darkAlgorithm, compactAlgorithm] }}
+      // theme={{ algorithm: [darkAlgorithm, compactAlgorithm] }}
     >
       <LoginProvider initUserInfo={initUserInfo}>
         <RouterProvider router={router} />
