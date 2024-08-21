@@ -133,7 +133,7 @@ axiosInstance.interceptors.response.use(
           //   },
           // });
           console.error('未登录');
-          // controller.abort('取消之后发送的所有请求');
+          // controller.abort('取消请求');
           break;
 
         // 403 token过期
@@ -144,7 +144,7 @@ axiosInstance.interceptors.response.use(
           console.error('登录过期，请重新登录');
           // 清除token
           localStorage.removeItem('token');
-          // controller.abort('取消之后发送的所有请求');
+          // controller.abort('取消请求');
 
           // store.commit('loginSuccess', null);
           // // 跳转登录页面，并将要浏览的页面fullPath传过去，登录成功后跳转需要访问的页面
@@ -187,7 +187,7 @@ async function axiosRequest<T>(req: Partial<AxiosRequestConfig>) {
         // 普通返回
         if (!result.success) {
           if (result.errorCode.indexOf('401') > -1) {
-            // controller.abort('取消之后发送的所有请求');
+            // controller.abort('取消请求');
             // 登录失效后的处理
             // window.location.href = configParams.loginErrUrl;
           }

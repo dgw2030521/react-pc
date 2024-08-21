@@ -17,6 +17,7 @@ export default function Home() {
       const result1 = await request.post<IProps>('/area/page', {
         pageNum: 1,
         pageSize: 3,
+        s: 1,
       });
 
       console.log('111', result1);
@@ -24,7 +25,7 @@ export default function Home() {
       const result2 = await axiosRequest<IProps>({
         url: '/area/page',
         method: 'post',
-        data: { pageNum: 1, pageSize: 3 },
+        data: { pageNum: 1, pageSize: 3, s: 2 },
       });
 
       console.log('222', result2);
