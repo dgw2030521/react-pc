@@ -53,97 +53,118 @@ interface PendingType {
   data: any;
   cancel: Function;
 }
+// 取消重复请求
+const pending: Array<PendingType> = [];
 
 // 登录失效
 const CancelToken = axios.CancelToken;
 const source = CancelToken.source();
 const controller = new AbortController();
 
-// 取消重复请求
-const pending: Array<PendingType> = [];
-// 移除重复请求
-const removePending = (config: AxiosRequestConfig) => {
-  for (const key in pending) {
-    const item: number = +key;
-    const list: PendingType = pending[key];
-    // 当前请求在数组中存在时执行函数体
-    if (
-      list.url === config.url &&
-      list.method === config.method &&
-      JSON.stringify(list.params) === JSON.stringify(config.params) &&
-      JSON.stringify(list.data) === JSON.stringify(config.data)
-    ) {
-      // 执行取消操作
-      list.cancel('操作太频繁，请稍后再试');
-      // 从数组中移除记录
-      pending.splice(item, 1);
-    }
-  }
-};
-
+// 默认实例
 const axiosInstance = axios.create({
   baseURL: host,
   timeout: 10000,
-  withCredentials: false,
+  // 跨域请求是否携带cookie
+  withCredentials: true,
   responseType: 'json',
   // responseType: 'blob'; 下载
   headers: {
     'Content-Type': 'application/json;charset=utf-8',
+    // 登录完成之后，将用户的token通过localStorage或者cookie存在本地
+    Authorization: localStorage.getItem(token_name),
   },
 });
 
 // 请求拦截器
 axiosInstance.interceptors.request.use(
-  (req: InternalAxiosRequestConfig) => {
-    req.headers.Authorization = localStorage.getItem(token_name);
-    if (req.data instanceof FormData) {
-      req.headers['Content-Type'] = 'multipart/form-data;charset=utf-8';
+  (reqConfig: InternalAxiosRequestConfig) => {
+    if (reqConfig.data instanceof FormData) {
+      reqConfig.headers['Content-Type'] = 'multipart/form-data;charset=utf-8';
     }
-
-    removePending(req);
-    req.cancelToken = new CancelToken(c => {
-      pending.push({
-        url: req.url,
-        method: `${req.method}`,
-        params: req.params,
-        data: req.data,
-        cancel: c,
-      });
-    });
+    const token = localStorage.getItem(token_name);
+    if (token) reqConfig.headers.Authorization = token;
 
     return {
-      ...req,
+      ...reqConfig,
       cancelToken: source.token,
       signal: controller.signal,
     };
   },
-  (err: AxiosError) => {
-    return Promise.reject(err);
+  (error: AxiosError) => {
+    return Promise.reject(error);
   },
 );
 
 /**
- * 响应请求处理
+ * 响应拦截器
  */
 axiosInstance.interceptors.response.use(
   async response => {
-    removePending(response.config);
+    // if (
+    //   response.data instanceof Blob &&
+    //   response.data.type?.includes('application/json')
+    // ) {
+    //   const text = await response.data?.text();
+    //   const json = JSON.parse(text);
+    //   return {
+    //     ...response,
+    //     data: json,
+    //   };
+    // }
+    // return response;
 
-    if (
-      response.data instanceof Blob &&
-      response.data.type?.includes('application/json')
-    ) {
-      const text = await response.data?.text();
-      const json = JSON.parse(text);
-      return {
-        ...response,
-        data: json,
-      };
+    if (response.status === 200) {
+      return Promise.resolve(response);
     }
-    return response;
+    return Promise.reject(response);
   },
-  err => {
-    return Promise.reject(err);
+  error => {
+    if (error.response.status) {
+      switch (error.response.status) {
+        // 401: 未登录
+        // 未登录则跳转登录页面，并携带当前页面的路径
+        // 在登录成功后返回当前页面，这一步需要在登录页操作。
+        case 401:
+          // router.replace({
+          //   path: '/login',
+          //   query: {
+          //     redirect: router.currentRoute.fullPath,
+          //   },
+          // });
+          console.error('未登录');
+          break;
+
+        // 403 token过期
+        // 登录过期对用户进行提示
+        // 清除本地token和清空vuex中token对象
+        // 跳转登录页面
+        case 403:
+          console.error('登录过期，请重新登录');
+          // 清除token
+          localStorage.removeItem('token');
+          // store.commit('loginSuccess', null);
+          // // 跳转登录页面，并将要浏览的页面fullPath传过去，登录成功后跳转需要访问的页面
+          // setTimeout(() => {
+          //   router.replace({
+          //     path: '/login',
+          //     query: {
+          //       redirect: router.currentRoute.fullPath,
+          //     },
+          //   });
+          // }, 1000);
+          break;
+
+        // 404请求不存在
+        case 404:
+          console.error('网络请求不存在');
+          break;
+        // 其他错误，直接抛出错误提示
+        default:
+          console.error('请求错误');
+      }
+      return Promise.reject(error.response);
+    }
   },
 );
 
@@ -153,22 +174,16 @@ async function axiosRequest<T>(req: AxiosRequestConfig) {
       .request<Response<T>>(req)
       .then(resp => {
         const { status } = resp;
+
+        console.log('###status', status);
         const result = resp.data;
-        if (status < 200 || status > 300) {
-          reject(result);
-        }
         // 下载
         if (result instanceof Blob) {
           return download(resp);
         }
         // 普通返回
         if (!result.success) {
-          if (
-            result.errorCode === '401' ||
-            result.errorCode === '401_1' ||
-            result.errorCode === '401_0' ||
-            result.errorCode === '003'
-          ) {
+          if (result.errorCode.indexOf('401') > -1) {
             // 登录失效后，取消后续的http请求
             source.cancel('登录失效');
             // 不支持 message 参数
