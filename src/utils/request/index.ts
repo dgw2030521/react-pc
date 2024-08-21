@@ -16,16 +16,14 @@ import axios from 'axios';
 
 import { Response } from '@/types/Common';
 import {
-  addCacheRequest,
-  download,
-  removeCacheRequest,
-} from '@/utils/request/tools';
+  addPendingRequest,
+  removePendingRequest,
+} from '@/utils/request/helper';
+import { download } from '@/utils/request/tools';
 
 const token_name = 'token';
 
 const host = import.meta.env.VITE_APP_DOMAIN;
-
-const controller = new AbortController();
 
 // 默认实例
 const axiosInstance = axios.create({
@@ -52,11 +50,10 @@ axiosInstance.interceptors.request.use(
     const token = localStorage.getItem(token_name);
     if (token) reqConfig.headers.Authorization = token;
 
-    // removePendingRequest(reqConfig);
-    // addPendingRequest(reqConfig);
+    const controller = new AbortController();
 
-    removeCacheRequest(reqConfig);
-    addCacheRequest(reqConfig);
+    // controller只在当前作用域生效
+    addPendingRequest(reqConfig, controller);
 
     return {
       ...reqConfig,
@@ -96,14 +93,12 @@ axiosInstance.interceptors.response.use(
       }
       return Promise.reject(res);
     }
-    // removePendingRequest(res.config); // 从pendingRequest对象中移除请求
-    removeCacheRequest(res.config);
+    removePendingRequest(res.config); // 从pendingRequest对象中移除请求
+
     return Promise.resolve(res);
   },
   error => {
-    // // 从pendingRequest对象中移除请求
-    // removePendingRequest(error.config || {});
-    removeCacheRequest(error.config);
+    removePendingRequest(error.config || {});
 
     if (axios.isCancel(error)) {
       return Promise.reject(error);
