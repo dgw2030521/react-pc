@@ -21,7 +21,7 @@ export default function Home() {
 
       console.log(result);
     } catch (e) {
-      // console.log(e);
+      console.log(e);
     }
   };
   const getData1 = async () => {
@@ -33,7 +33,7 @@ export default function Home() {
 
       console.log(result);
     } catch (e) {
-      // console.log(e);
+      console.log(e);
     }
   };
 
@@ -58,7 +58,7 @@ export default function Home() {
           getData();
         }}
       >
-        取消重复请求
+        取消重复请求(连发8个，取消7个)
       </Button>
       <Button
         onClick={() => {
