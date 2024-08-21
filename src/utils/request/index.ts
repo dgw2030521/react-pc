@@ -48,6 +48,7 @@ axiosRetry(axiosInstance, {
     axiosRetry.isNetworkOrIdempotentRequestError(err) ||
     err.response.status === 404,
   shouldResetTimeout: true,
+  retryDelay: axiosRetry.linearDelay(),
 });
 
 // 请求拦截器
