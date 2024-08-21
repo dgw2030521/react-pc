@@ -176,6 +176,7 @@ async function axiosRequest<T>(req: Partial<AxiosRequestConfig>) {
     axiosInstance
       .request<Response<T>>(req)
       .then(resp => {
+        console.log('完整的response:::', resp);
         // 只接收了status=200的请求
         const result = resp.data;
         // 下载
