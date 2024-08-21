@@ -19,7 +19,7 @@ export default function Home() {
         pageSize: 3,
       });
 
-      console.log(result1);
+      console.log('111', result1);
 
       const result2 = await axiosRequest<IProps>({
         url: '/area/page',
@@ -27,7 +27,7 @@ export default function Home() {
         data: { pageNum: 1, pageSize: 3 },
       });
 
-      console.log(result2);
+      console.log('222', result2);
     } catch (e) {
       console.log(e);
     }

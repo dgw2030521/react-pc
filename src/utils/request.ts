@@ -4,6 +4,10 @@
  * 2、文件上传 formData https://axios-http.com/zh/docs/multipart
  * 3、json提交 application/json
  * 4、下载文件 stream
+ *
+ * !!! 需增加能力
+ * 1、取消重复请求
+ * 2、登录失效，取消后续所有无效请求
  */
 
 import type {
@@ -56,9 +60,6 @@ interface PendingType {
 // 取消重复请求
 const pending: Array<PendingType> = [];
 
-// 登录失效
-const CancelToken = axios.CancelToken;
-const source = CancelToken.source();
 const controller = new AbortController();
 
 // 默认实例
@@ -88,7 +89,6 @@ axiosInstance.interceptors.request.use(
 
     return {
       ...reqConfig,
-      cancelToken: source.token,
       signal: controller.signal,
     };
   },
@@ -102,19 +102,18 @@ axiosInstance.interceptors.request.use(
  */
 axiosInstance.interceptors.response.use(
   async response => {
-    // if (
-    //   response.data instanceof Blob &&
-    //   response.data.type?.includes('application/json')
-    // ) {
-    //   const text = await response.data?.text();
-    //   const json = JSON.parse(text);
-    //   return {
-    //     ...response,
-    //     data: json,
-    //   };
-    // }
-    // return response;
-
+    // 下载文件
+    if (
+      response.data instanceof Blob &&
+      response.data.type?.includes('application/json')
+    ) {
+      const dataText = await response.data?.text();
+      const dataJson = JSON.parse(dataText);
+      return {
+        ...response,
+        data: dataJson,
+      };
+    }
     if (response.status === 200) {
       return Promise.resolve(response);
     }
@@ -134,16 +133,19 @@ axiosInstance.interceptors.response.use(
           //   },
           // });
           console.error('未登录');
+          // controller.abort('取消之后发送的所有请求');
           break;
 
         // 403 token过期
         // 登录过期对用户进行提示
-        // 清除本地token和清空vuex中token对象
+        // 清除本地token和清空store中token对象
         // 跳转登录页面
         case 403:
           console.error('登录过期，请重新登录');
           // 清除token
           localStorage.removeItem('token');
+          // controller.abort('取消之后发送的所有请求');
+
           // store.commit('loginSuccess', null);
           // // 跳转登录页面，并将要浏览的页面fullPath传过去，登录成功后跳转需要访问的页面
           // setTimeout(() => {
@@ -174,22 +176,17 @@ async function axiosRequest<T>(req: Partial<AxiosRequestConfig>) {
     axiosInstance
       .request<Response<T>>(req)
       .then(resp => {
-        const { status } = resp;
-
-        console.log('###status', status);
+        // 只接收了status=200的请求
         const result = resp.data;
         // 下载
         if (result instanceof Blob) {
-          return download(resp);
+          download(resp);
+          resolve(null);
         }
         // 普通返回
         if (!result.success) {
           if (result.errorCode.indexOf('401') > -1) {
-            // 登录失效后，取消后续的http请求
-            source.cancel('登录失效');
-            // 不支持 message 参数
-            controller.abort();
-
+            // controller.abort('取消之后发送的所有请求');
             // 登录失效后的处理
             // window.location.href = configParams.loginErrUrl;
           }
@@ -208,6 +205,8 @@ async function axiosRequest<T>(req: Partial<AxiosRequestConfig>) {
 const request = {
   get: <T>(url: string, config?: Partial<AxiosRequestConfig>) =>
     axiosRequest<T>({ ...config, url, method: 'GET' }),
+  delete: <T>(url: string, config?: Partial<AxiosRequestConfig>) =>
+    axiosRequest<T>({ ...config, url, method: 'DELETE' }),
   post: <T>(url: string, data: any, config?: Partial<AxiosRequestConfig>) =>
     axiosRequest<T>({ ...config, url, data, method: 'POST' }),
   put: <T>(url: string, data: any, config?: Partial<AxiosRequestConfig>) =>
