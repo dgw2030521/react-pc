@@ -38,35 +38,38 @@ export default function Home() {
   };
 
   return (
-    <Space style={{ width: '100%', padding: 50 }}>
-      <Button
-        onClick={() => {
-          getData();
-        }}
-      >
-        正常请求
-      </Button>
-      <Button
-        onClick={() => {
-          getData();
-          getData();
-          getData();
-          getData();
-          getData();
-          getData();
-          getData();
-          getData();
-        }}
-      >
-        取消重复请求(连发8个，取消7个)
-      </Button>
-      <Button
-        onClick={() => {
-          getData1();
-        }}
-      >
-        请求重试
-      </Button>
-    </Space>
+    <div>
+      <Space style={{ width: '100%', padding: 50 }}>
+        <Button
+          onClick={() => {
+            getData();
+          }}
+        >
+          正常请求
+        </Button>
+        <Button
+          onClick={() => {
+            getData();
+            getData();
+            getData();
+            getData();
+            getData();
+            getData();
+            getData();
+            getData();
+          }}
+        >
+          取消重复请求(连发8个，取消7个)
+        </Button>
+        <Button
+          onClick={() => {
+            getData1();
+          }}
+        >
+          请求重试
+        </Button>
+      </Space>
+      <div>1122</div>
+    </div>
   );
 }
