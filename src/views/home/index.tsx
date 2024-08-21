@@ -14,12 +14,12 @@ interface IProps {
 export default function Home() {
   const getData = async () => {
     try {
-      const result = await request.post<IProps>('/area/page', {
+      const result = await request.post<IProps>('/area/page1', {
         pageNum: 1,
         pageSize: 3,
       });
 
-      console.log('111', result);
+      console.log(result);
     } catch (e) {
       console.log(e);
     }
@@ -27,13 +27,13 @@ export default function Home() {
 
   useEffect(() => {
     getData();
-    getData();
-    getData();
-    getData();
-    getData();
-    getData();
-    getData();
-    getData();
+    // getData();
+    // getData();
+    // getData();
+    // getData();
+    // getData();
+    // getData();
+    // getData();
   }, []);
   return (
     <Space style={{ width: '100%' }}>

@@ -13,6 +13,7 @@ import type {
   InternalAxiosRequestConfig,
 } from 'axios';
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 
 import { Response } from '@/types/Common';
 import {
@@ -38,6 +39,15 @@ const axiosInstance = axios.create({
     // 登录完成之后，将用户的token通过localStorage或者cookie存在本地
     Authorization: localStorage.getItem(token_name),
   },
+});
+
+// 增加retry配置
+axiosRetry(axiosInstance, {
+  retries: 4,
+  retryCondition: err =>
+    axiosRetry.isNetworkOrIdempotentRequestError(err) ||
+    err.response.status === 404,
+  shouldResetTimeout: true,
 });
 
 // 请求拦截器
@@ -94,16 +104,15 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(res);
     }
     removePendingRequest(res.config); // 从pendingRequest对象中移除请求
-
     return Promise.resolve(res);
   },
   error => {
-    removePendingRequest(error.config || {});
-
     if (axios.isCancel(error)) {
       return Promise.reject(error);
     }
-    const errStatus = error.response.status;
+
+    removePendingRequest(error?.config || {});
+    const errStatus = error?.response?.status;
     switch (errStatus) {
       // 401: 未登录
       // 未登录则跳转登录页面，并携带当前页面的路径
@@ -149,7 +158,7 @@ axiosInstance.interceptors.response.use(
       default:
         console.error('请求错误');
     }
-    return Promise.reject(error.response);
+    return Promise.reject(error);
   },
 );
 
@@ -158,7 +167,6 @@ async function axiosRequest<T>(req: Partial<AxiosRequestConfig>) {
     axiosInstance
       .request<Response<T>>(req)
       .then(resp => {
-        console.log('完整的response:::', resp);
         // 只接收了status=200的请求
         const result = resp.data;
         // 下载
