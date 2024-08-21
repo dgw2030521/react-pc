@@ -10,10 +10,13 @@
 import axios, { AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import qs from 'qs';
 
-const pendingRequest = new Map<string, any>(); // Map对象保存键值对。任何值(对象或者原始值) 都可以作为一个键或一个值。
+// 白名单，不拦截重复请求的url
+const cacheWhiteList = [];
+// Map对象保存键值对。任何值(对象或者原始值) 都可以作为一个键或一个值
+const pendingRequest = new Map<string, any>();
 
 /**
- * // generateReqKey：用于根据当前请求的信息，生成请求 Key；
+ * 用于根据当前请求的信息，生成请求 Key；
  * @param config
  */
 function generateReqKey(config: InternalAxiosRequestConfig) {
@@ -32,7 +35,10 @@ function addPendingRequest(config: InternalAxiosRequestConfig) {
   config.cancelToken =
     config.cancelToken ||
     new axios.CancelToken(cancel => {
-      if (!pendingRequest.has(requestKey)) {
+      if (
+        !pendingRequest.has(requestKey) &&
+        cacheWhiteList.indexOf(config.url) === -1
+      ) {
         pendingRequest.set(requestKey, cancel);
       }
     });
