@@ -52,7 +52,7 @@ const download = (response: AxiosResponse) => {
 
 interface PendingType {
   url?: string;
-  method?: Method | string;
+  method?: Method;
   params: any;
   data: any;
   cancel: Function;

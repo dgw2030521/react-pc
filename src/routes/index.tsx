@@ -3,6 +3,7 @@ import React from 'react';
 import NotFound from '@/components/NotFound';
 import BasicLayout from '@/layouts/BasicLayout';
 import Home from '@/views/home';
+import Login from '@/views/login';
 
 const routes = [
   {
@@ -18,6 +19,10 @@ const routes = [
           title: '首页 ',
         },
         element: <Home />,
+      },
+      {
+        path: '/login',
+        element: <Login />,
       },
       {
         path: '*',
