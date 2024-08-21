@@ -5,9 +5,6 @@
  * 3、json提交 application/json
  * 4、下载文件 stream
  *
- * !!! 需增加能力
- * 1、取消重复请求
- * 2、登录失效，取消后续所有无效请求
  */
 
 import type {
@@ -74,82 +71,86 @@ axiosInstance.interceptors.request.use(
  * 响应拦截器
  */
 axiosInstance.interceptors.response.use(
-  async response => {
-    // 特殊响应，下载文件
-    if (
-      response.config.responseType === 'blob' &&
-      response.data instanceof Blob &&
-      response.data.type?.includes('application/json')
-    ) {
-      const dataText = await response.data?.text();
-      const dataJson = JSON.parse(dataText);
-      return {
-        ...response,
-        data: dataJson,
-      };
+  async res => {
+    const status = res.data.code || res.status;
+    // 如果请求为非200否者默认统一处理
+    if (status !== 200 && status !== 201) {
+      // 处理特殊的响应返回
+      if (res.config.responseType === 'blob' || res.data instanceof Blob) {
+        // res.data.type?.includes('application/json')
+
+        // const reader = new FileReader()
+        // reader.readAsText(res.data)
+        // reader.onload = e => {
+        //   const { msg } = JSON.parse(reader.result)
+        //   this.$message.error(msg)
+        // }
+        // return res
+        const dataText = await res.data?.text();
+        const dataJson = JSON.parse(dataText);
+        return {
+          ...res,
+          data: dataJson,
+        };
+      }
+      return Promise.reject(res);
     }
-    if (response.status === 200) {
-      // 从pendingRequest对象中移除请求
-      removePendingRequest(response.config);
-      return Promise.resolve(response);
-    }
-    return Promise.reject(response);
+    removePendingRequest(res.config); // 从pendingRequest对象中移除请求
+    return Promise.resolve(res);
   },
   error => {
     // 从pendingRequest对象中移除请求
     removePendingRequest(error.config || {});
     if (axios.isCancel(error)) {
-      // console.log(`已取消的重复请求：${error.message}`);
       return Promise.reject(error);
     }
-    if (error.response.status) {
-      switch (error.response.status) {
-        // 401: 未登录
-        // 未登录则跳转登录页面，并携带当前页面的路径
-        // 在登录成功后返回当前页面，这一步需要在登录页操作。
-        case 401:
-          // router.replace({
-          //   path: '/login',
-          //   query: {
-          //     redirect: router.currentRoute.fullPath,
-          //   },
-          // });
-          console.error('未登录');
-          // controller.abort('取消请求');
-          break;
+    const errStatus = error.response.status;
+    switch (errStatus) {
+      // 401: 未登录
+      // 未登录则跳转登录页面，并携带当前页面的路径
+      // 在登录成功后返回当前页面，这一步需要在登录页操作。
+      case 401:
+        // router.replace({
+        //   path: '/login',
+        //   query: {
+        //     redirect: router.currentRoute.fullPath,
+        //   },
+        // });
+        console.error('未登录');
+        // controller.abort('取消请求');
+        break;
 
-        // 403 token过期
-        // 登录过期对用户进行提示
-        // 清除本地token和清空store中token对象
-        // 跳转登录页面
-        case 403:
-          console.error('登录过期，请重新登录');
-          // 清除token
-          localStorage.removeItem('token');
-          // controller.abort('取消请求');
+      // 403 token过期
+      // 登录过期对用户进行提示
+      // 清除本地token和清空store中token对象
+      // 跳转登录页面
+      case 403:
+        console.error('登录过期，请重新登录');
+        // 清除token
+        localStorage.removeItem('token');
+        // controller.abort('取消请求');
 
-          // store.commit('loginSuccess', null);
-          // // 跳转登录页面，并将要浏览的页面fullPath传过去，登录成功后跳转需要访问的页面
-          // setTimeout(() => {
-          //   router.replace({
-          //     path: '/login',
-          //     query: {
-          //       redirect: router.currentRoute.fullPath,
-          //     },
-          //   });
-          // }, 1000);
-          break;
+        // store.commit('loginSuccess', null);
+        // // 跳转登录页面，并将要浏览的页面fullPath传过去，登录成功后跳转需要访问的页面
+        // setTimeout(() => {
+        //   router.replace({
+        //     path: '/login',
+        //     query: {
+        //       redirect: router.currentRoute.fullPath,
+        //     },
+        //   });
+        // }, 1000);
+        break;
 
-        // 404请求不存在
-        case 404:
-          console.error('网络请求不存在');
-          break;
-        // 其他错误，直接抛出错误提示
-        default:
-          console.error('请求错误');
-      }
-      return Promise.reject(error.response);
+      // 404请求不存在
+      case 404:
+        console.error('网络请求不存在');
+        break;
+      // 其他错误，直接抛出错误提示
+      default:
+        console.error('请求错误');
     }
+    return Promise.reject(error.response);
   },
 );
 
