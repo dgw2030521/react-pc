@@ -1,5 +1,6 @@
 import { Button, Space } from 'antd';
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { request } from '@/utils/request';
 
@@ -12,6 +13,8 @@ interface IProps {
 }
 
 export default function Home() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const getData = async () => {
     try {
       const result = await request.post<IProps>('/area/page', {
@@ -39,12 +42,17 @@ export default function Home() {
 
   return (
     <div>
+      <Button
+        onClick={() => {
+          navigate('/#/detail');
+        }}>
+        单击
+      </Button>
       <Space style={{ width: '100%', padding: 50 }}>
         <Button
           onClick={() => {
             getData();
-          }}
-        >
+          }}>
           正常请求
         </Button>
         <Button
@@ -57,15 +65,13 @@ export default function Home() {
             getData();
             getData();
             getData();
-          }}
-        >
+          }}>
           取消重复请求(连发8个，取消7个)
         </Button>
         <Button
           onClick={() => {
             getData1();
-          }}
-        >
+          }}>
           请求重试
         </Button>
       </Space>
