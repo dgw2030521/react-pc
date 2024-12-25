@@ -26,10 +26,11 @@ yarn-debug.log*
 yarn-error.log*
 
 #IDE配置
-.vscode/**/*
+.vscode/**/*.*
 !.vscode/settings.json
 !.vscode/extensions.json
-.idea/
+
+.idea/**/*.*
 !.idea/jsLinters/eslint.xml
 !.idea/prettier.xml
 
