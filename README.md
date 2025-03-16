@@ -22,3 +22,31 @@
 - 文件夹命名
   - 普通 demo-test
   - 框架结构命名 复数
+
+## 常用技术方案
+
+- 路由变化提示 import { useBeforeUnload, useBlocker, } from 'react-router-dom';
+
+## 常用组件
+
+- keep-alive
+- react-flow
+- react-query
+- ag-grid-react
+- react-virtualized
+- react-window
+- zod
+- zod-form
+- zod-to-ts
+- zod-to-ts-form
+- zod-to-ts-form-render
+- zod-to-ts-form-render-antd
+
+## 状态管理
+
+- zustand
+- redux
+- mobx
+- jotai
+- recoil
+- xstate
