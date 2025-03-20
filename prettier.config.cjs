@@ -7,7 +7,7 @@ module.exports = {
   semi: true,
   singleQuote: true,
   trailingComma: 'all',
-  printWidth: 80,
+  printWidth: 120,
   proseWrap: 'never',
   arrowParens: 'avoid',
 };
