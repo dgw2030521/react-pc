@@ -16,7 +16,7 @@
     "vite.config.mts",
     "postcss.config.js",
     "prettier.config.cjs",
-    "commitlint.config.js","eslint.config.mjs"
-
+    "commitlint.config.js",
+    "eslint.config.mjs"
   ]
 }

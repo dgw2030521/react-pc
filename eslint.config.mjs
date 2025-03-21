@@ -51,8 +51,8 @@ const customTsFlatConfig = [
   },
 ];
 
+// React 相关配置项，用于对 React 项目代码进行规范检查和配置
 const commonReactConfig = [
-  // React 相关配置项，用于对 React 项目代码进行规范检查和配置
   {
     name: 'react-eslint',
     files: ['**/*.{js,jsx,mjs,cjs,ts,tsx}'],
