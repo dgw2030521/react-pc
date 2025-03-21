@@ -9,8 +9,8 @@ scripts
 pnpm-lock.yaml
 .gitignore
 .prettierignore
-.eslintignore
 src/CodeDefine
 src/ViCross
 src/asserts
+
 

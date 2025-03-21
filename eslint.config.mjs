@@ -1,4 +1,4 @@
-import pluginJs from '@eslint/js';
+import jsPlugin from '@eslint/js';
 // import tseslint from 'typescript-eslint';
 import tsEslintPlugin from '@typescript-eslint/eslint-plugin'; // 导入 TypeScript ESLint 插件，用于针对 TypeScript 代码添加额外的 lint 规则等功能
 import tsEslintParser from '@typescript-eslint/parser'; // 导入
@@ -131,12 +131,14 @@ const commonReactConfig = [
 export default [
   { files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'] },
   { languageOptions: { globals: globals.browser } },
-  pluginJs.configs.recommended,
+  jsPlugin.configs.recommended,
+  // prettier支持
   eslintPluginPrettierRecommended,
   // ...tseslint.configs.recommended,
   // pluginReact.configs.flat.recommended,
   ...customTsFlatConfig,
   ...commonReactConfig,
+
   {
     ignores: ['config/', 'build/', 'dist/', 'public/', 'scripts/', 'mock/', '.vscode/', '**/*.test.js'],
   },
