@@ -9,19 +9,12 @@
  * 2、请求失败重试
  */
 
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  InternalAxiosRequestConfig,
-} from 'axios';
+import type { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 
 import { Response } from '@/types/Common';
-import {
-  addPendingRequest,
-  removePendingRequest,
-} from '@/utils/request/helper';
+import { addPendingRequest, removePendingRequest } from '@/utils/request/helper';
 import { download } from '@/utils/request/tools';
 
 const token_name = 'token';
@@ -32,8 +25,8 @@ const host = import.meta.env.VITE_APP_DOMAIN;
 const axiosInstance = axios.create({
   baseURL: host,
   timeout: 10000,
-  // 跨域请求是否携带cookie
-  withCredentials: true,
+  // 跨域请求是否携带cookie,通配符*的话，不能携带cookie
+  withCredentials: false,
   responseType: 'json',
   // responseType: 'blob'; 下载
   headers: {
@@ -206,8 +199,7 @@ async function axiosRequest<T>(req: Partial<AxiosRequestConfig>) {
 }
 
 const request = {
-  get: <T>(url: string, config?: Partial<AxiosRequestConfig>) =>
-    axiosRequest<T>({ ...config, url, method: 'GET' }),
+  get: <T>(url: string, config?: Partial<AxiosRequestConfig>) => axiosRequest<T>({ ...config, url, method: 'GET' }),
   delete: <T>(url: string, config?: Partial<AxiosRequestConfig>) =>
     axiosRequest<T>({ ...config, url, method: 'DELETE' }),
   post: <T>(url: string, data: any, config?: Partial<AxiosRequestConfig>) =>
